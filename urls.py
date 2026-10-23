@@ -1,14 +1,12 @@
-from django.contrib.auth import views as auth_views
-from django.urls import path, reverse_lazy
-
+from django.urls import path
 from . import views
 
-app_name = "accounts"
+app_name = "core"
 urlpatterns = [
-    path("login/", auth_views.LoginView.as_view(template_name="accounts/login.html", redirect_authenticated_user=True), name="login"),
-    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
-    path("register/", views.register, name="register"),
-    path("profile/", views.profile, name="profile"),
-    path("password/", auth_views.PasswordChangeView.as_view(
-        template_name="accounts/password_change.html", success_url=reverse_lazy("accounts:profile")), name="password_change"),
+    path("", views.home, name="home"),
+    path("about/", views.about, name="about"),
+    path("contact/", views.contact, name="contact"),
+    path("search/", views.search, name="search"),
+    path("notifications/", views.notifications, name="notifications"),
+    path("notifications/read/", views.mark_all_read, name="mark_read"),
 ]

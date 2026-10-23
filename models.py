@@ -1,26 +1,41 @@
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-from core.models import TimeStampedModel
 
 
-class Profile(TimeStampedModel):
-    ADMIN, INSTRUCTOR, STUDENT = "admin", "instructor", "student"
-    ROLE_CHOICES = [(ADMIN, "Admin"), (INSTRUCTOR, "Instructor"), (STUDENT, "Student")]
+class TimeStampedModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
-    role = models.CharField(max_length=12, choices=ROLE_CHOICES, default=STUDENT)
-    bio = models.TextField(blank=True, max_length=500)
-    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
+    class Meta:
+        abstract = True
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
+    message = models.CharField(max_length=255)
+    link = models.CharField(max_length=255, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.user.username} ({self.role})"
+        return f"{self.user}: {self.message[:40]}"
 
 
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.get_or_create(
-            user=instance, defaults={"role": Profile.ADMIN if instance.is_superuser else Profile.STUDENT})
+class ContactMessage(TimeStampedModel):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    subject = models.CharField(max_length=150)
+    message = models.TextField()
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.subject
+
+
+def notify(user, message, link=""):
+    return Notification.objects.create(user=user, message=message[:255], link=link)
