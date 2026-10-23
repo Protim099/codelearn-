@@ -1,12 +1,9 @@
 from django.urls import path
 from . import views
 
-app_name = "core"
+app_name = "quizzes"
 urlpatterns = [
-    path("", views.home, name="home"),
-    path("about/", views.about, name="about"),
-    path("contact/", views.contact, name="contact"),
-    path("search/", views.search, name="search"),
-    path("notifications/", views.notifications, name="notifications"),
-    path("notifications/read/", views.mark_all_read, name="mark_read"),
+    path("quizzes/history/", views.history, name="history"),
+    path("quizzes/attempt/<int:pk>/", views.result, name="result"),
+    path("quizzes/<int:pk>/", views.take_quiz, name="take"),
 ]

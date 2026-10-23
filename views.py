@@ -1,65 +1,58 @@
 from django.contrib import messages
-from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.shortcuts import redirect, render
-from django.views.decorators.http import require_POST
+from django.db.models import Avg, Max
+from django.shortcuts import get_object_or_404, redirect, render
 
-from courses.models import Category, Course, Enrollment
-from practice.models import CodingExercise
-from .forms import ContactForm
-from .utils import paginate
-
-
-def home(request):
-    User = get_user_model()
-    featured = Course.objects.published().with_stats().order_by("-student_count", "-created_at")[:6]
-    context = {
-        "featured": featured,
-        "categories": Category.objects.all(),
-        "stats": {
-            "courses": Course.objects.filter(is_published=True).count(),
-            "students": User.objects.filter(profile__role="student").count(),
-            "instructors": User.objects.filter(profile__role="instructor").count(),
-            "enrollments": Enrollment.objects.count(),
-        },
-    }
-    return render(request, "core/home.html", context)
+from accounts.permissions import can_manage_course
+from core.utils import paginate
+from courses.models import Enrollment
+from .models import Quiz, QuizAttempt
+from .services import grade_quiz
 
 
-def about(request):
-    return render(request, "core/about.html")
-
-
-def contact(request):
-    form = ContactForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Thanks! Your message has been received.")
-        return redirect("core:contact")
-    return render(request, "core/contact.html", {"form": form})
-
-
-def search(request):
-    q = request.GET.get("q", "").strip()
-    courses, exercises = [], []
-    if q:
-        courses = Course.objects.published().with_stats().filter(
-            Q(title__icontains=q) | Q(description__icontains=q) | Q(category__name__icontains=q)
-            | Q(modules__lessons__title__icontains=q)).distinct()[:30]
-        exercises = CodingExercise.objects.filter(
-            Q(title__icontains=q) | Q(description__icontains=q)).select_related("course")[:30]
-    return render(request, "core/search.html", {"q": q, "courses": courses, "exercises": exercises})
+def _can_access(user, course):
+    return Enrollment.objects.filter(user=user, course=course).exists() or can_manage_course(user, course)
 
 
 @login_required
-def notifications(request):
-    page = paginate(request, request.user.notifications.all(), 15)
-    return render(request, "core/notifications.html", {"page": page})
+def take_quiz(request, pk):
+    quiz = get_object_or_404(Quiz.objects.select_related("course").prefetch_related("questions"), pk=pk)
+    if not _can_access(request.user, quiz.course):
+        messages.warning(request, "Enroll in the course to take its quizzes.")
+        return redirect(quiz.course.get_absolute_url())
+    questions = quiz.questions.all()
+    if request.method == "POST":
+        if not questions:
+            messages.error(request, "This quiz has no questions yet.")
+            return redirect(request.path)
+        score, total, answers = grade_quiz(quiz, request.POST)
+        if len(answers) < total:
+            messages.error(request, "Please answer every question before submitting.")
+            return render(request, "quizzes/take.html", {"quiz": quiz, "questions": questions, "chosen": request.POST})
+        attempt = QuizAttempt.objects.create(user=request.user, quiz=quiz, score=score, total=total,
+                                             percentage=round(score * 100 / total), answers=answers)
+        return redirect("quizzes:result", pk=attempt.pk)
+    return render(request, "quizzes/take.html", {"quiz": quiz, "questions": questions, "chosen": {}})
 
 
 @login_required
-@require_POST
-def mark_all_read(request):
-    request.user.notifications.filter(is_read=False).update(is_read=True)
-    return redirect("core:notifications")
+def result(request, pk):
+    attempt = get_object_or_404(QuizAttempt.objects.select_related("quiz__course"), pk=pk)
+    if attempt.user_id != request.user.id and not can_manage_course(request.user, attempt.quiz.course):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+    rows = []
+    for q in attempt.quiz.questions.all():
+        chosen = attempt.answers.get(str(q.pk), "")
+        rows.append({"q": q, "chosen": chosen, "correct": chosen == q.correct_option,
+                     "options": [(k, v, k == q.correct_option, k == chosen) for k, v in q.options]})
+    return render(request, "quizzes/result.html", {"attempt": attempt, "rows": rows})
+
+
+@login_required
+def history(request):
+    attempts = QuizAttempt.objects.filter(user=request.user).select_related("quiz__course")
+    stats = attempts.aggregate(avg=Avg("percentage"), best=Max("percentage"))
+    return render(request, "quizzes/history.html", {
+        "page": paginate(request, attempts, 15), "stats": stats, "count": attempts.count(),
+        "passed": sum(1 for a in attempts if a.passed)})
