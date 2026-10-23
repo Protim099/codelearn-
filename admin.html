@@ -1,0 +1,16 @@
+{% extends "base_dash.html" %}{% block title %}Admin dashboard{% endblock %}
+{% block dash %}<h1 class="h3 mb-3">Admin dashboard</h1>
+<div class="row g-3 mb-4">{% for label, v in totals.items %}<div class="col-6 col-md-4"><div class="card p-3 text-center"><div class="fs-3 fw-bold text-primary">{{ v }}</div><small class="text-muted text-capitalize">{{ label }}</small></div></div>{% endfor %}</div>
+<div class="row g-3 mb-4"><div class="col-md-5"><div class="card"><div class="card-body"><h6>Users by role</h6><canvas id="roleChart" height="200"></canvas></div></div></div>
+<div class="col-md-7"><div class="card"><div class="card-body"><h6>Enrollments by category</h6><canvas id="catChart" height="160"></canvas></div></div></div></div>
+<div class="row g-3"><div class="col-md-6"><div class="card"><div class="card-header bg-white fw-semibold">Top courses</div><ul class="list-group list-group-flush">{% for c in top %}<li class="list-group-item d-flex justify-content-between">{{ c.title }}<span class="badge bg-primary">{{ c.student_count }}</span></li>{% empty %}<li class="list-group-item text-muted">No courses.</li>{% endfor %}</ul></div></div>
+<div class="col-md-6"><div class="card"><div class="card-header bg-white fw-semibold">Newest users</div><ul class="list-group list-group-flush">{% for u in recent_users %}<li class="list-group-item d-flex justify-content-between">{{ u.username }}<span class="badge text-bg-secondary">{{ u.profile.role }}</span></li>{% endfor %}</ul></div></div></div>
+<p class="text-muted small mt-3">Average quiz score: {{ avg_quiz|floatformat:0|default:"–" }}% &middot; Contact messages: {{ messages_count }}</p>
+{% endblock %}
+{% block extra_js %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{{ chart|json_script:"chart-data" }}
+<script>
+const d = JSON.parse(document.getElementById('chart-data').textContent);
+new Chart(document.getElementById('roleChart'), {type:'doughnut', data:{labels:d.roles, datasets:[{data:d.role_counts, backgroundColor:['#ef4444','#4f46e5','#06b6d4']}]}});
+new Chart(document.getElementById('catChart'), {type:'bar', data:{labels:d.cats, datasets:[{label:'Enrollments', data:d.cat_counts, backgroundColor:'#4f46e5'}]}, options:{plugins:{legend:{display:false}}}});
+</script>{% endblock %}

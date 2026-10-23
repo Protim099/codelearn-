@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block title %}Profile{% endblock %}
+{% block content %}<div class="container py-4" style="max-width:720px">
+<div class="card"><div class="card-body p-4">
+<div class="d-flex align-items-center mb-3">
+  {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" class="rounded-circle me-3" width="80" height="80" style="object-fit:cover" alt="Profile picture">{% else %}<i class="bi bi-person-circle display-3 text-primary me-3"></i>{% endif %}
+  <div><h1 class="h4 mb-0">{{ user.get_full_name|default:user.username }}</h1><span class="badge bg-primary text-capitalize">{{ role }}</span> <span class="text-muted small">@{{ user.username }}</span></div></div>
+<form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+  {% include "partials/_form.html" with form=uform %}{% include "partials/_form.html" with form=pform %}
+  <button class="btn btn-primary" type="submit">Save changes</button> <a class="btn btn-outline-secondary" href="{% url 'accounts:password_change' %}">Change password</a></form>
+</div></div></div>{% endblock %}

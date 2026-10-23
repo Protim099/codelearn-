@@ -1,0 +1,20 @@
+<div class="card course-card h-100">
+  {% if c.thumbnail %}<img src="{{ c.thumbnail.url }}" class="thumb-img" alt="{{ c.title }} thumbnail">
+  {% else %}<div class="thumb" style="--hue:{{ c.category_id }}"><i class="bi {{ c.category.icon }}"></i></div>{% endif %}
+  <div class="card-body d-flex flex-column">
+    <div class="mb-2"><span class="badge text-bg-light">{{ c.category.name }}</span>
+      <span class="badge bg-{% if c.difficulty == 'beginner' %}success{% elif c.difficulty == 'intermediate' %}warning text-dark{% else %}danger{% endif %}">{{ c.get_difficulty_display }}</span></div>
+    <h5 class="card-title"><a class="stretched-link text-decoration-none text-dark" href="{{ c.get_absolute_url }}">{{ c.title }}</a></h5>
+    <p class="small text-muted mb-2"><i class="bi bi-person"></i> {{ c.instructor.get_full_name|default:c.instructor.username }}</p>
+    <p class="small text-muted flex-grow-1">{{ c.description|truncatechars:90 }}</p>
+    {% if progress is not None %}
+    <div class="progress mb-1" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="height:8px"><div class="progress-bar" style="width:{{ progress }}%"></div></div>
+    <small class="text-muted">{{ progress }}% complete</small>
+    {% else %}
+    <div class="small text-muted d-flex justify-content-between">
+      <span><i class="bi bi-star-fill star"></i> {{ c.rating_avg|floatformat:1|default:"New" }}</span>
+      <span><i class="bi bi-people"></i> {{ c.student_count|default:0 }}</span>
+      <span><i class="bi bi-journal-text"></i> {{ c.lesson_total|default:0 }} lessons</span>
+    </div>{% endif %}
+  </div>
+</div>

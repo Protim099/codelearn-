@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}Notifications{% endblock %}
+{% block content %}<div class="container py-4" style="max-width:760px">
+<div class="d-flex justify-content-between align-items-center mb-3"><h1 class="h3 mb-0">Notifications</h1>
+<form method="post" action="{% url 'core:mark_read' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary" type="submit">Mark all as read</button></form></div>
+<div class="list-group">{% for n in page %}
+<a class="list-group-item list-group-item-action {% if not n.is_read %}list-group-item-primary{% endif %}" href="{{ n.link|default:'#' }}"><i class="bi bi-bell me-2"></i>{{ n.message }} <small class="text-muted float-end">{{ n.created_at|timesince }} ago</small></a>
+{% empty %}{% include "partials/_empty.html" with icon="bi-bell-slash" text="You're all caught up." %}{% endfor %}</div>
+{% include "partials/_pagination.html" %}</div>{% endblock %}

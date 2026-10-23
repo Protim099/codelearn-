@@ -1,0 +1,4 @@
+{% extends "base_dash.html" %}{% block title %}Confirm delete{% endblock %}
+{% block dash %}<div class="card border-danger"><div class="card-body p-4"><h1 class="h4 text-danger">Delete {{ kind }}?</h1>
+<p>You are about to permanently delete <strong>{{ obj }}</strong>{% if kind == 'course' or kind == 'module' or kind == 'quiz' %} and everything inside it{% endif %}. This cannot be undone.</p>
+<form method="post">{% csrf_token %}<button class="btn btn-danger" type="submit">Yes, delete</button> <a class="btn btn-outline-secondary" href="{{ back }}">Cancel</a></form></div></div>{% endblock %}

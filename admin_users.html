@@ -1,0 +1,14 @@
+{% extends "base_dash.html" %}{% block title %}Users{% endblock %}
+{% block dash %}<h1 class="h3 mb-3">Manage users</h1>
+<form class="card card-body mb-3" method="get"><div class="row g-2"><div class="col-md-4"><input class="form-control" name="q" value="{{ q }}" placeholder="Search" aria-label="Search"></div>
+<div class="col-md-3"><select class="form-select" name="role" aria-label="Role"><option value="">All roles</option>{% for k, v in roles %}<option value="{{ k }}" {% if k == role %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></div>
+<div class="col-md-3"><select class="form-select" name="active" aria-label="Status"><option value="">Any status</option><option value="1" {% if active == '1' %}selected{% endif %}>Active</option><option value="0" {% if active == '0' %}selected{% endif %}>Inactive</option></select></div>
+<div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Filter</button></div></div></form>
+<div class="card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>User</th><th>Role</th><th>Status</th><th>Joined</th><th></th></tr></thead><tbody>
+{% for u in page %}<tr><td>{{ u.username }}<div class="small text-muted">{{ u.email }}</div></td>
+<td><form class="d-flex gap-1" method="post" action="{% url 'dashboards:admin_user_update' u.pk %}">{% csrf_token %}<input type="hidden" name="action" value="set_role"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+<select class="form-select form-select-sm" name="role" aria-label="Role">{% for k, v in roles %}<option value="{{ k }}" {% if k == u.profile.role %}selected{% endif %}>{{ v }}</option>{% endfor %}</select><button class="btn btn-sm btn-outline-primary" type="submit" data-no-loading>Set</button></form></td>
+<td>{% if u.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td><td>{{ u.date_joined|date:"M d, Y" }}</td>
+<td><form method="post" action="{% url 'dashboards:admin_user_update' u.pk %}">{% csrf_token %}<input type="hidden" name="action" value="toggle_active"><input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-sm btn-outline-secondary" type="submit" data-no-loading>{% if u.is_active %}Deactivate{% else %}Activate{% endif %}</button></form></td></tr>
+{% empty %}<tr><td colspan="5">{% include "partials/_empty.html" with icon="bi-people" text="No users found." %}</td></tr>{% endfor %}</tbody></table></div></div>
+{% include "partials/_pagination.html" %}{% endblock %}

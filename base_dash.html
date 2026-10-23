@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="row g-4">
+    <aside class="col-lg-3">
+      <div class="card sidebar"><div class="card-body">
+        <div class="d-flex align-items-center mb-3">
+          {% if user.profile.avatar %}<img src="{{ user.profile.avatar.url }}" class="rounded-circle me-2" width="44" height="44" style="object-fit:cover" alt="">
+          {% else %}<i class="bi bi-person-circle fs-2 me-2 text-primary"></i>{% endif %}
+          <div><div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div><span class="badge bg-primary text-capitalize">{{ role }}</span></div>
+        </div>
+        <ul class="nav nav-pills flex-column gap-1">
+        {% if role == 'student' %}
+          <li><a class="nav-link {% if request.resolver_match.url_name == 'student' or request.resolver_match.url_name == 'instructor' or request.resolver_match.url_name == 'admin' %}active{% endif %}" href="{% url 'dashboards:student' %}"><i class="bi bi-speedometer2 me-2"></i>Overview</a></li>
+          <li><a class="nav-link" href="{% url 'courses:list' %}"><i class="bi bi-collection me-2"></i>Browse courses</a></li>
+          <li><a class="nav-link" href="{% url 'practice:list' %}"><i class="bi bi-terminal me-2"></i>Practice</a></li>
+          <li><a class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}" href="{% url 'quizzes:history' %}"><i class="bi bi-clipboard-data me-2"></i>Quiz history</a></li>
+          <li><a class="nav-link" href="{% url 'courses:bookmarks' %}"><i class="bi bi-bookmark-heart me-2"></i>Bookmarks</a></li>
+        {% elif role == 'instructor' %}
+          <li><a class="nav-link {% if request.resolver_match.url_name == 'student' or request.resolver_match.url_name == 'instructor' or request.resolver_match.url_name == 'admin' %}active{% endif %}" href="{% url 'dashboards:instructor' %}"><i class="bi bi-speedometer2 me-2"></i>Overview</a></li>
+          <li><a class="nav-link {% if request.resolver_match.url_name == 'instructor_students' %}active{% endif %}" href="{% url 'dashboards:instructor_students' %}"><i class="bi bi-people me-2"></i>My students</a></li>
+          <li><a class="nav-link" href="{% url 'dashboards:manage_create' 'course' %}"><i class="bi bi-plus-circle me-2"></i>New course</a></li>
+        {% else %}
+          <li><a class="nav-link {% if request.resolver_match.url_name == 'student' or request.resolver_match.url_name == 'instructor' or request.resolver_match.url_name == 'admin' %}active{% endif %}" href="{% url 'dashboards:admin' %}"><i class="bi bi-speedometer2 me-2"></i>Overview</a></li>
+          <li><a class="nav-link {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}" href="{% url 'dashboards:admin_users' %}"><i class="bi bi-people me-2"></i>Users</a></li>
+          <li><a class="nav-link {% if request.resolver_match.url_name == 'admin_courses' %}active{% endif %}" href="{% url 'dashboards:admin_courses' %}"><i class="bi bi-collection me-2"></i>Courses</a></li>
+          <li><a class="nav-link {% if request.resolver_match.url_name == 'admin_categories' %}active{% endif %}" href="{% url 'dashboards:admin_categories' %}"><i class="bi bi-tags me-2"></i>Categories</a></li>
+          <li><a class="nav-link" href="{% url 'dashboards:instructor_students' %}"><i class="bi bi-person-lines-fill me-2"></i>Enrollments</a></li>
+          <li><a class="nav-link" href="/django-admin/"><i class="bi bi-gear me-2"></i>Django admin</a></li>
+        {% endif %}
+          <li><a class="nav-link" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
+        </ul>
+      </div></div>
+    </aside>
+    <section class="col-lg-9">{% block dash %}{% endblock %}</section>
+  </div>
+</div>
+{% endblock %}

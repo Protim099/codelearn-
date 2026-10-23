@@ -1,0 +1,11 @@
+{% extends "base_dash.html" %}{% block title %}Students{% endblock %}
+{% block dash %}<h1 class="h3 mb-3">Enrolled students</h1>
+<form class="card card-body mb-3" method="get"><div class="row g-2"><div class="col-md-5"><input class="form-control" name="q" value="{{ q }}" placeholder="Search name, username or email" aria-label="Search"></div>
+<div class="col-md-5"><select class="form-select" name="course" aria-label="Course"><option value="">All courses</option>{% for c in my_courses %}<option value="{{ c.pk }}" {% if c.pk|stringformat:"s" == course_id %}selected{% endif %}>{{ c.title }}</option>{% endfor %}</select></div>
+<div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Filter</button></div></div></form>
+<div class="card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Student</th><th>Course</th><th style="width:25%">Progress</th><th>Quiz avg</th><th>Enrolled</th></tr></thead><tbody>
+{% for e in page %}<tr><td>{{ e.user.get_full_name|default:e.user.username }}<div class="small text-muted">{{ e.user.email }}</div></td><td>{{ e.course.title }}</td>
+<td><div class="progress" style="height:8px"><div class="progress-bar" style="width:{{ e.progress }}%"></div></div><small>{{ e.progress }}%</small></td>
+<td>{% if e.quiz_avg is not None %}{{ e.quiz_avg|floatformat:0 }}%{% else %}–{% endif %}</td><td>{{ e.enrolled_at|date:"M d, Y" }}</td></tr>
+{% empty %}<tr><td colspan="5">{% include "partials/_empty.html" with icon="bi-people" text="No enrolled students found." %}</td></tr>{% endfor %}</tbody></table></div></div>
+{% include "partials/_pagination.html" %}{% endblock %}

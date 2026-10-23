@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}Bookmarks{% endblock %}
+{% block content %}<div class="container py-4">
+<h1 class="h3 mb-3">Bookmarks &amp; wishlist</h1>
+<h5>Bookmarks</h5><div class="row g-4 mb-4">{% for b in bookmarks %}{% with c=b.course %}<div class="col-md-6 col-lg-4">{% include "partials/_course_card.html" %}</div>{% endwith %}
+{% empty %}<div class="col-12">{% include "partials/_empty.html" with icon="bi-bookmark" text="No bookmarks yet." %}</div>{% endfor %}</div>
+<h5>Wishlist</h5><div class="row g-4">{% for b in wishlist %}{% with c=b.course %}<div class="col-md-6 col-lg-4">{% include "partials/_course_card.html" %}</div>{% endwith %}
+{% empty %}<div class="col-12">{% include "partials/_empty.html" with icon="bi-heart" text="Your wishlist is empty." %}</div>{% endfor %}</div>
+</div>{% endblock %}

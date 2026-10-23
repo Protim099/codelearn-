@@ -1,0 +1,28 @@
+{% extends "base_dash.html" %}{% block title %}My dashboard{% endblock %}
+{% block dash %}
+<h1 class="h3 mb-3">Welcome back, {{ user.first_name|default:user.username }} 👋</h1>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="card stat-card p-3"><div class="d-flex align-items-center"><div class="icon bg-primary-subtle text-primary me-3"><i class="bi bi-collection"></i></div><div><div class="fs-4 fw-bold">{{ rows|length }}</div><small class="text-muted">Enrolled</small></div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card stat-card p-3"><div class="d-flex align-items-center"><div class="icon bg-success-subtle text-success me-3"><i class="bi bi-check2-circle"></i></div><div><div class="fs-4 fw-bold">{{ completed }}</div><small class="text-muted">Lessons done</small></div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card stat-card p-3"><div class="d-flex align-items-center"><div class="icon bg-warning-subtle text-warning me-3"><i class="bi bi-clipboard-data"></i></div><div><div class="fs-4 fw-bold">{{ attempt_count }}</div><small class="text-muted">Quizzes taken</small></div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card stat-card p-3"><div class="d-flex align-items-center"><div class="icon bg-info-subtle text-info me-3"><i class="bi bi-bullseye"></i></div><div><div class="fs-4 fw-bold">{% if avg_score is not None %}{{ avg_score|floatformat:0 }}%{% else %}–{% endif %}</div><small class="text-muted">Avg. score</small></div></div></div></div>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-6"><div class="card"><div class="card-body"><h6>Course progress</h6>{% if chart.courses %}<canvas id="progressChart" height="200"></canvas>{% else %}{% include "partials/_empty.html" with text="Enroll in a course to see progress." %}{% endif %}</div></div></div>
+  <div class="col-md-6"><div class="card"><div class="card-body"><h6>Recent quiz scores</h6>{% if chart.quiz_scores %}<canvas id="quizChart" height="200"></canvas>{% else %}{% include "partials/_empty.html" with text="No quiz attempts yet." %}{% endif %}</div></div></div>
+</div>
+<h5>Achievements</h5>
+<div class="row g-3 mb-4">{% for name, icon, desc, earned in badges %}<div class="col-6 col-md-4 col-lg"><div class="badge-ach {% if not earned %}locked{% endif %}" title="{{ desc }}"><i class="bi {{ icon }}"></i><div class="fw-semibold small mt-1">{{ name }}</div><div class="text-muted" style="font-size:.7rem">{{ desc }}</div></div></div>{% endfor %}</div>
+<h5>Recently accessed</h5>
+<div class="row g-3 mb-4">{% for r in recent %}{% with c=r.course progress=r.progress %}<div class="col-md-4">{% include "partials/_course_card.html" %}</div>{% endwith %}
+{% empty %}<div class="col-12">{% include "partials/_empty.html" with icon="bi-collection" text="You haven't started any course yet." %}<div class="text-center"><a class="btn btn-primary" href="{% url 'courses:list' %}">Browse courses</a></div></div>{% endfor %}</div>
+<h5>Recommended for you</h5>
+<div class="row g-3">{% for c in recommended %}<div class="col-md-6 col-xl-3">{% include "partials/_course_card.html" %}</div>{% empty %}<div class="col-12">{% include "partials/_empty.html" with text="No recommendations right now." %}</div>{% endfor %}</div>
+{% endblock %}
+{% block extra_js %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{{ chart|json_script:"chart-data" }}
+<script>
+const d = JSON.parse(document.getElementById('chart-data').textContent);
+if (document.getElementById('progressChart')) new Chart(document.getElementById('progressChart'), {type:'bar', data:{labels:d.courses, datasets:[{label:'Progress %', data:d.progress, backgroundColor:'#4f46e5'}]}, options:{scales:{y:{min:0,max:100}}, plugins:{legend:{display:false}}}});
+if (document.getElementById('quizChart')) new Chart(document.getElementById('quizChart'), {type:'line', data:{labels:d.quiz_labels, datasets:[{label:'Score %', data:d.quiz_scores, borderColor:'#06b6d4', tension:.3, fill:false}]}, options:{scales:{y:{min:0,max:100}}, plugins:{legend:{display:false}}}});
+</script>{% endblock %}

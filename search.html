@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block title %}Search{% endblock %}
+{% block content %}<div class="container py-4">
+<h1 class="h3 mb-3">Search results{% if q %} for “{{ q }}”{% endif %}</h1>
+{% if not q %}{% include "partials/_empty.html" with icon="bi-search" text="Type something in the search box above." %}
+{% else %}
+<h5>Courses ({{ courses|length }})</h5>
+<div class="row g-4 mb-4">{% for c in courses %}<div class="col-md-6 col-lg-4">{% include "partials/_course_card.html" %}</div>{% empty %}<div class="col-12">{% include "partials/_empty.html" with text="No matching courses." %}</div>{% endfor %}</div>
+<h5>Coding exercises ({{ exercises|length }})</h5>
+<div class="list-group">{% for e in exercises %}<a class="list-group-item list-group-item-action" href="{{ e.get_absolute_url }}"><strong>{{ e.title }}</strong> <span class="text-muted small">— {{ e.course.title }}</span></a>{% empty %}{% include "partials/_empty.html" with text="No matching exercises." %}{% endfor %}</div>
+{% endif %}</div>{% endblock %}

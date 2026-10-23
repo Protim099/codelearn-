@@ -1,0 +1,32 @@
+{% extends "base_dash.html" %}{% block title %}Manage {{ course.title }}{% endblock %}
+{% block dash %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2"><div><a class="small" href="{% url 'dashboards:home' %}">&larr; Dashboard</a><h1 class="h3 mb-0">{{ course.title }}</h1>
+  <span class="badge {% if course.is_published %}bg-success{% else %}bg-secondary{% endif %}">{% if course.is_published %}Published{% else %}Draft{% endif %}</span> <small class="text-muted">{{ student_count }} students</small></div>
+  <div class="d-flex gap-1 flex-wrap"><a class="btn btn-sm btn-outline-primary" href="{{ course.get_absolute_url }}">View</a>
+  <a class="btn btn-sm btn-outline-primary" href="{% url 'dashboards:manage_edit' 'course' course.pk %}">Edit</a>
+  <a class="btn btn-sm btn-outline-secondary" href="{% url 'dashboards:course_results' course.pk %}">Results</a>
+  <a class="btn btn-sm btn-outline-secondary" href="{% url 'dashboards:announce' course.pk %}">Announce</a>
+  <a class="btn btn-sm btn-outline-danger" href="{% url 'dashboards:manage_delete' 'course' course.pk %}">Delete</a></div></div>
+
+<div class="card mb-4"><div class="card-header bg-white d-flex justify-content-between"><strong>Modules &amp; lessons</strong><a class="btn btn-sm btn-primary" href="{% url 'dashboards:manage_create' 'module' %}?parent={{ course.pk }}">+ Module</a></div><div class="card-body">
+{% for m in modules %}<div class="mb-3"><div class="d-flex justify-content-between align-items-center"><h6 class="mb-0">{{ m.order }}. {{ m.title }}</h6><div>
+  <a class="btn btn-sm btn-outline-primary" href="{% url 'dashboards:manage_create' 'lesson' %}?parent={{ m.pk }}">+ Lesson</a>
+  <a class="btn btn-sm btn-outline-secondary" href="{% url 'dashboards:manage_edit' 'module' m.pk %}">Edit</a>
+  <a class="btn btn-sm btn-outline-danger" href="{% url 'dashboards:manage_delete' 'module' m.pk %}">Delete</a></div></div>
+  <ul class="list-group list-group-flush">{% for l in m.lessons.all %}<li class="list-group-item d-flex justify-content-between"><span>{{ l.order }}. {{ l.title }} <small class="text-muted">({{ l.get_lesson_type_display }})</small></span>
+  <span><a href="{% url 'dashboards:manage_edit' 'lesson' l.pk %}">Edit</a> &middot; <a class="text-danger" href="{% url 'dashboards:manage_delete' 'lesson' l.pk %}">Delete</a></span></li>{% empty %}<li class="list-group-item text-muted small">No lessons yet.</li>{% endfor %}</ul></div>
+{% empty %}{% include "partials/_empty.html" with icon="bi-layers" text="Add your first module to start building the course." %}{% endfor %}</div></div>
+
+<div class="card mb-4"><div class="card-header bg-white d-flex justify-content-between"><strong>Quizzes</strong><a class="btn btn-sm btn-primary" href="{% url 'dashboards:manage_create' 'quiz' %}?parent={{ course.pk }}">+ Quiz</a></div><div class="card-body">
+{% for q in quizzes %}<div class="mb-3"><div class="d-flex justify-content-between"><strong>{{ q.title }}</strong><div>
+  <a class="btn btn-sm btn-outline-primary" href="{% url 'dashboards:manage_create' 'question' %}?parent={{ q.pk }}">+ Question</a>
+  <a class="btn btn-sm btn-outline-secondary" href="{% url 'dashboards:manage_edit' 'quiz' q.pk %}">Edit</a>
+  <a class="btn btn-sm btn-outline-danger" href="{% url 'dashboards:manage_delete' 'quiz' q.pk %}">Delete</a></div></div>
+  <ul class="list-group list-group-flush">{% for qu in q.questions.all %}<li class="list-group-item d-flex justify-content-between"><span>{{ qu.text|truncatechars:70 }} <span class="badge text-bg-light">Answer {{ qu.correct_option }}</span></span>
+  <span><a href="{% url 'dashboards:manage_edit' 'question' qu.pk %}">Edit</a> &middot; <a class="text-danger" href="{% url 'dashboards:manage_delete' 'question' qu.pk %}">Delete</a></span></li>{% empty %}<li class="list-group-item text-muted small">No questions yet.</li>{% endfor %}</ul></div>
+{% empty %}{% include "partials/_empty.html" with icon="bi-clipboard" text="No quizzes yet." %}{% endfor %}</div></div>
+
+<div class="card"><div class="card-header bg-white d-flex justify-content-between"><strong>Coding exercises</strong><a class="btn btn-sm btn-primary" href="{% url 'dashboards:manage_create' 'exercise' %}?parent={{ course.pk }}">+ Exercise</a></div>
+<ul class="list-group list-group-flush">{% for e in exercises %}<li class="list-group-item d-flex justify-content-between"><span>{{ e.title }} <small class="text-muted">({{ e.get_language_display }})</small></span>
+<span><a href="{% url 'dashboards:manage_edit' 'exercise' e.pk %}">Edit</a> &middot; <a class="text-danger" href="{% url 'dashboards:manage_delete' 'exercise' e.pk %}">Delete</a></span></li>{% empty %}<li class="list-group-item text-muted small">No exercises yet.</li>{% endfor %}</ul></div>
+{% endblock %}

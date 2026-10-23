@@ -1,0 +1,10 @@
+{% extends "base_dash.html" %}{% block title %}Quiz history{% endblock %}
+{% block dash %}<h1 class="h3 mb-3">Quiz history</h1>
+<div class="row g-3 mb-3">
+  <div class="col-4"><div class="card p-3 text-center"><div class="fs-3 fw-bold">{{ count }}</div><small class="text-muted">Attempts</small></div></div>
+  <div class="col-4"><div class="card p-3 text-center"><div class="fs-3 fw-bold">{{ stats.avg|floatformat:0|default:"–" }}{% if stats.avg %}%{% endif %}</div><small class="text-muted">Average</small></div></div>
+  <div class="col-4"><div class="card p-3 text-center"><div class="fs-3 fw-bold">{{ stats.best|default:"–" }}{% if stats.best %}%{% endif %}</div><small class="text-muted">Best ({{ passed }} passed)</small></div></div></div>
+<div class="card"><div class="table-responsive"><table class="table mb-0 align-middle"><thead><tr><th>Quiz</th><th>Course</th><th>Score</th><th>Date</th><th></th></tr></thead><tbody>
+{% for a in page %}<tr><td>{{ a.quiz.title }}</td><td>{{ a.quiz.course.title }}</td><td><span class="badge bg-{% if a.passed %}success{% else %}danger{% endif %}">{{ a.percentage }}%</span> {{ a.score }}/{{ a.total }}</td><td>{{ a.created_at|date:"M d, Y" }}</td><td><a href="{% url 'quizzes:result' a.pk %}">Review</a></td></tr>
+{% empty %}<tr><td colspan="5">{% include "partials/_empty.html" with icon="bi-clipboard-data" text="You haven't taken any quizzes yet." %}</td></tr>{% endfor %}</tbody></table></div></div>
+{% include "partials/_pagination.html" %}{% endblock %}

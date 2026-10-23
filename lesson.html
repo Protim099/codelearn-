@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% block title %}{{ lesson.title }}{% endblock %}
+{% block content %}<div class="container py-4"><div class="row g-4">
+  <aside class="col-lg-3 order-lg-2"><div class="card"><div class="card-body">
+    <a class="small" href="{{ course.get_absolute_url }}">&larr; {{ course.title }}</a>
+    <div class="progress my-2" style="height:8px"><div class="progress-bar" style="width:{{ progress }}%"></div></div><small>{{ progress }}% complete</small>
+    <div class="list-group list-group-flush mt-2" style="max-height:60vh;overflow:auto">{% for l in lessons %}
+      <a class="list-group-item list-group-item-action {% if l.pk == lesson.pk %}active{% endif %}" href="{% url 'courses:lesson' course.slug l.pk %}">
+      {% if l.pk in done_ids %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-circle"></i>{% endif %} {{ l.title }}</a>{% endfor %}</div>
+  </div></div></aside>
+  <article class="col-lg-9 order-lg-1"><div class="card"><div class="card-body p-4">
+    <small class="text-muted">{{ lesson.module.title }} &middot; {{ lesson.duration_minutes }} min &middot; {{ lesson.get_lesson_type_display }}</small>
+    <h1 class="h3 mb-3">{{ lesson.title }}</h1>
+    {% if lesson.embed_url %}<div class="ratio ratio-16x9 mb-3"><iframe src="{{ lesson.embed_url }}" title="{{ lesson.title }}" allowfullscreen loading="lazy"></iframe></div>
+    {% elif lesson.video_url %}<p><a class="btn btn-outline-primary" href="{{ lesson.video_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-play-circle"></i> Watch video</a></p>{% endif %}
+    {% if lesson.content %}<div class="lesson-body">{{ lesson.content|linebreaks }}</div>{% endif %}
+    {% if lesson.code_example %}<h6 class="mt-3">Code example</h6><pre class="code-block">{{ lesson.code_example }}</pre>{% endif %}
+    {% if lesson.material %}<a class="btn btn-outline-secondary" href="{% url 'courses:material' lesson.pk %}"><i class="bi bi-download"></i> Download learning material</a>{% endif %}
+    <hr><div class="d-flex flex-wrap gap-2 justify-content-between">
+      <div>{% if prev_lesson %}<a class="btn btn-outline-secondary" href="{% url 'courses:lesson' course.slug prev_lesson.pk %}">&larr; Previous</a>{% endif %}</div>
+      <div class="d-flex gap-2">
+      {% if is_student %}<form method="post" action="{% url 'courses:complete_lesson' lesson.pk %}">{% csrf_token %}
+        {% if completed %}<input type="hidden" name="action" value="undo"><button class="btn btn-outline-success" type="submit"><i class="bi bi-check-circle-fill"></i> Completed (undo)</button>
+        {% else %}<input type="hidden" name="action" value="complete"><button class="btn btn-success" type="submit"><i class="bi bi-check2-circle"></i> Mark as completed</button>{% endif %}</form>{% endif %}
+      {% if next_lesson %}<a class="btn btn-primary" href="{% url 'courses:lesson' course.slug next_lesson.pk %}">Next &rarr;</a>{% endif %}</div>
+    </div>
+  </div></div></article>
+</div></div>{% endblock %}

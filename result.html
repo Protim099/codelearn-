@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Quiz result{% endblock %}
+{% block content %}<div class="container py-4" style="max-width:820px">
+<div class="card mb-4 text-center"><div class="card-body p-4">
+  <h1 class="h4">{{ attempt.quiz.title }}</h1>
+  <div class="display-4 fw-bold {% if attempt.passed %}text-success{% else %}text-danger{% endif %}">{{ attempt.percentage }}%</div>
+  <p class="mb-1">{{ attempt.score }} / {{ attempt.total }} correct &middot; {% if attempt.passed %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Not passed</span>{% endif %}</p>
+  <a class="btn btn-primary btn-sm" href="{{ attempt.quiz.get_absolute_url }}">Retake</a> <a class="btn btn-outline-secondary btn-sm" href="{% url 'quizzes:history' %}">History</a></div></div>
+<h5>Review answers</h5>
+{% for r in rows %}<div class="card mb-3 border-start border-4 {% if r.correct %}border-success{% else %}border-danger{% endif %}"><div class="card-body">
+  <p class="fw-semibold mb-2">{{ forloop.counter }}. {{ r.q.text }}</p>
+  {% for key, text, is_correct, is_chosen in r.options %}<div class="{% if is_correct %}text-success fw-semibold{% elif is_chosen %}text-danger{% endif %}">
+    {% if is_correct %}<i class="bi bi-check-circle-fill"></i>{% elif is_chosen %}<i class="bi bi-x-circle-fill"></i>{% else %}<i class="bi bi-circle"></i>{% endif %} {{ key }}. {{ text }}{% if is_chosen %} <small>(your answer)</small>{% endif %}</div>{% endfor %}
+  {% if r.q.explanation %}<p class="small text-muted mt-2 mb-0"><i class="bi bi-lightbulb"></i> {{ r.q.explanation }}</p>{% endif %}</div></div>{% endfor %}
+</div>{% endblock %}

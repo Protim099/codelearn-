@@ -1,0 +1,13 @@
+{% extends "base_dash.html" %}{% block title %}Courses{% endblock %}
+{% block dash %}<h1 class="h3 mb-3">Manage courses</h1>
+<form class="card card-body mb-3" method="get"><div class="row g-2"><div class="col-md-4"><input class="form-control" name="q" value="{{ q }}" placeholder="Title or instructor" aria-label="Search"></div>
+<div class="col-md-3"><select class="form-select" name="category" aria-label="Category"><option value="">All categories</option>{% for c in categories %}<option value="{{ c.slug }}" {% if c.slug == category %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></div>
+<div class="col-md-3"><select class="form-select" name="status" aria-label="Status"><option value="">Any status</option><option value="published" {% if status == 'published' %}selected{% endif %}>Published</option><option value="draft" {% if status == 'draft' %}selected{% endif %}>Draft</option></select></div>
+<div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Filter</button></div></div></form>
+<div class="card"><div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Course</th><th>Instructor</th><th>Students</th><th>Status</th><th></th></tr></thead><tbody>
+{% for c in page %}<tr><td><a href="{{ c.get_absolute_url }}">{{ c.title }}</a><div class="small text-muted">{{ c.category.name }}</div></td><td>{{ c.instructor.username }}</td><td>{{ c.student_count }}</td>
+<td>{% if c.is_published %}<span class="badge bg-success">Published</span>{% else %}<span class="badge bg-secondary">Draft</span>{% endif %}</td>
+<td class="text-nowrap"><form class="d-inline" method="post" action="{% url 'dashboards:admin_course_action' c.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary" name="action" value="toggle_publish" type="submit" data-no-loading>{% if c.is_published %}Unpublish{% else %}Publish{% endif %}</button>
+<button class="btn btn-sm btn-outline-danger" name="action" value="delete" type="submit" data-no-loading data-confirm="Delete this course permanently?">Delete</button></form></td></tr>
+{% empty %}<tr><td colspan="5">{% include "partials/_empty.html" with text="No courses found." %}</td></tr>{% endfor %}</tbody></table></div></div>
+{% include "partials/_pagination.html" %}{% endblock %}
